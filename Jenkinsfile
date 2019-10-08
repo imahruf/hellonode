@@ -23,6 +23,13 @@ node {
         }
     }
 
+   stage('sonar-scanner') {
+      def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+      withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
+        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=hellonode -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=NJS -Dsonar.sources=main.js -Dsonar.tests=test.js"
+      }
+    }
+
     stage('Push image') {
         /* Finally, we'll push the image with two tags:
          * First, the incremental build number from Jenkins
