@@ -29,6 +29,15 @@ node {
         sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.verbose=true -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=hellonode -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=NJS -Dsonar.sources=main.js -Dsonar.tests=test.js -Dsonar.exclusions=*.json"
       }
     }
+    
+    stage("SonarQube Quality Gate") { 
+        timeout(time: 1, unit: 'HOURS') { 
+           def qg = waitForQualityGate() 
+           if (qg.status != 'OK') {
+             error "Pipeline aborted due to quality gate failure: ${qg.status}"
+           }
+        }
+    }
 
     stage('Push image') {
         /* Finally, we'll push the image with two tags:
