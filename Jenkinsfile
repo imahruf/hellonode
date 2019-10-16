@@ -25,17 +25,21 @@ node {
 
    stage('sonar-scanner') {
       def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-      withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
+       withSonarQubeEnv('Sonar') {
+       withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
         sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.verbose=true -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=hellonode -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=NJS -Dsonar.sources=main.js -Dsonar.tests=test.js -Dsonar.exclusions=*.json"
       }
+       }
     }
     
     stage("SonarQube Quality Gate") { 
+        withSonarQubeEnv('Sonar') {
         timeout(time: 1, unit: 'HOURS') { 
            def qg = waitForQualityGate() 
            if (qg.status != 'OK') {
              error "Pipeline aborted due to quality gate failure: ${qg.status}"
            }
+        }
         }
     }
 
